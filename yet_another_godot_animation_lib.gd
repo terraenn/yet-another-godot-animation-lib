@@ -47,12 +47,14 @@ signal animation_finished(type : AnimationType)
 signal animation_started(type : AnimationType)
 # ------------------------
 
-# ENUMS --------------------
+# ENUMS & CONSTANTS --------
 ## Used in [signal animation_finished] and [signal animation_started].
 enum AnimationType {
 	FLASH,
 	GO_TO,
 }
+## The AnimationType enum keys as snake_case strings, plus their wrappers.
+const snake_case_animation_type : Array[String] = ["flash", "go_to", "flash_color"]
 # --------------------------
 #endregion
 
@@ -221,7 +223,6 @@ func go_to(
 		duration = clamp(old_pos.distance_to(position) / 250, 0.5, 2.5)
 	var rotation : float =\
 	 rad_to_deg(old_pos.angle_to_point(position)) if rotate else old_rotation
-	print(rotation)
 	tween\
 	.parallel()\
 	.tween_property(node, "rotation_degrees", rotation, duration / 3.0 if animate_rotation else 0.0)\
@@ -239,4 +240,29 @@ func go_to(
 	.parallel()\
 	.tween_callback(animation_finished.emit.bind(AnimationType.GO_TO))
 	
+#endregion
+
+#region MISC
+## Chain multiple animations.
+func chain(animations : Array[Dictionary]) -> void:
+	for dict in animations:
+		var key : String
+		var potential_key : Variant = dict.keys()[0]
+		if potential_key is String or potential_key is StringName:
+			key = dict.keys()[0]
+		else:
+			push_error("Key was expected to be a String, but was %s. chain argument should be of type Array[Dictionary[String, Array[Variant]]], where the string is a valid animation method." % potential_key)
+			continue
+		var value : Array[Variant]
+		var potential_value : Variant = dict[key]
+		if potential_value is Array[Variant]:
+			value = potential_value
+		else:
+			push_error("Value was expected to be Array[Variant], but was %s. chain argument should be of type Array[Dictionary[String, Array[Variant]]], where the string is a valid animation method." % potential_value)
+			continue
+		if has_method(key) and key in snake_case_animation_type:
+			callv(key, value)
+			await animation_finished
+		else:
+			push_error("AnimationHelper method '%s' with the args %s could not be found." % [key, value])
 #endregion
