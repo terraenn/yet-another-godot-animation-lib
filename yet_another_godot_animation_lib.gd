@@ -243,7 +243,31 @@ func go_to(
 #endregion
 
 #region MISC
-## Chain multiple animations.
+## [b]Chain multiple animations.[/b]
+## [br][br]Iterates through the animations [Array][[Dictionary]]
+## and calls the animation method key with its respective arguments value.
+##[br]The animations array should be typed like [Array][[Dictionary][[String], [Array][[Variant]]]],
+## but GDScript doesn't allow nested type hints, so you'll only get an error at runtime.
+## The string should be in [constant snake_case_animation_type].
+## It's basically the same as doing this:
+##[codeblock]
+##ah.flash_color(Color(1.0, 0.0, 1.0, 1.0))
+##await ah.animation_finished
+##ah.go_to(Vector2(100, 100), true, 1.0)
+##await ah.animation_finished
+##ah.flash_color(Color(0.0, 1.0, 0.0, 1.0))
+##[/codeblock]
+## except it won't stop other code.
+##[br][b]Example:[/b]
+##[codeblock]
+##ah.chain(
+##		[
+##			{ "flash_color": [Color(1.0, 0.0, 1.0, 1.0)] },
+##			{ "flash_color": [Color(0.0, 1.0, 0.0, 1.0)] },
+##			{ "go_to": [Vector2(200, 200)] },
+##		]
+##	)
+##[/codeblock]
 func chain(animations : Array[Dictionary]) -> void:
 	for dict in animations:
 		var key : String
