@@ -3,7 +3,7 @@
 2. Create a new AnimationHelper with AnimationHelper.create_animation_helper()
 3. Call methods on the animation helper instance
 <br>
-To see the documentation press F1 in Godot with the script in the project files, type AnimationHelper and press Enter. You should be able to see a list of variables, signals, enum and methods with explanations on what they do under them.
+To see the documentation press F1 in Godot with the script in the project files, type AnimationHelper and press Enter. You should be able to see a list of variables, signals, constants, enums and methods with explanations on what they do under them.
    
 ## Features:
 - Basic animation chaining
