@@ -37,6 +37,10 @@ var def_node : CanvasItem
 #endregion
 
 #region BUILT-IN
+func _init() -> void:
+	var process_tween := create_tween()
+	process_tween.set_loops()
+	process_tween.tween_callback(_we_have_process_at_home).set_delay(0.01 / Engine.get_frames_per_second() * 2)
 #endregion
 
 #region CLASS
@@ -47,9 +51,23 @@ static func create_animation_helper(_def_node : CanvasItem = null) -> AnimationH
 		ah.def_node = _def_node
 	return ah
 
-## Helper function, makes a new [Tween].
+## Helper function, creates a new [Tween].
+## As this is a [RefCounted] and it doesn't have access the [SceneTree]
+## directly (can't do [method Node.get_tree]),
+## it uses [method Engine.get_main_loop] to try and access it.
 static func create_tween() -> Tween:
 	return Engine.get_main_loop().root.create_tween()
+
+## Called every frame.
+## [br]...If it feels like working correctly.
+## It's really fast the at the start of the project, then it kinda evens out at 60 fps.
+func _we_have_process_at_home() -> void:
+	var fps := Engine.get_frames_per_second()
+	@warning_ignore("unused_variable")
+	var delta := 1.0 / fps
+	prints("delta at home:", delta, "fps:", fps)
+	def_node.position.x += delta
+	pass
 
 ## Set [member def_trans]
 func set_trans(value : Tween.TransitionType) -> AnimationHelper:
@@ -70,7 +88,7 @@ func set_time_multi(value : float) -> AnimationHelper:
 
 #region ANIMATIONS
 ## Pulses a [float] value using sine.
-## [br]Put this in the _process method of a node to work.
+## [br]Put this in the [b]_process[/b] method of a node to work.
 ## [br]Supports [Vector2] x and y values as well.
 ## To pulse those, format the property string like you would a [NodePath] - "position:x", "scale:y", etc.
 ## You can pulse x and y at the same time:
@@ -78,7 +96,7 @@ func set_time_multi(value : float) -> AnimationHelper:
 ##func _process(_delta: float) -> void:
 ##	anim_helper.pulse("scale:x", $Sprite2D)
 ##	anim_helper.pulse("scale:y", $Sprite2D)[/codeblock]
-## [br][b]NOTE[/b]: only accessing [member Vector2i.x] and [member Vector2i.y]
+## [br][b]NOTE[/b]: only accessing [member Vector2.x] and [member Vector2.y]
 ## values like that is supported. [Vector2i] isn't supported either.
 func pulse(
 	property : String,
@@ -110,6 +128,29 @@ func pulse(
 	else:
 		node.set(property, sin(time * speed) * multiplier + min_value)
 
+## Wrapper for [method pulse].
+## Makes the node go from a Vector2 scale value to another Vector2 scale value smoothly.
+## [br]Set the vector args to uniform vectors if you just want a regular pulse animation
+## without stretching the sprite:
+##[codeblock]
+##ah.pulse_scale(Vector2(2, 2), Vector2.ONE)
+##[/codeblock]
+##[br]You can get some funky effects if you don't, though:
+##[codeblock]
+##ah.pulse_scale(Vector2(5, 1.25), Vector2.ONE, Vector2(0.3, 4.5))
+##[/codeblock]
+## Will make the y scale quickly bounce and slowly increase and decrease the x scale, for example.
+func pulse_scale(
+	to : Vector2, 
+	from : Vector2,
+	speed : Vector2 = Vector2.ONE,
+	node : CanvasItem = def_node,
+) -> void:
+	pulse("scale:x", node,
+	 from.x, speed.x, to.x / from.x - from.x)
+	pulse("scale:y", node,
+	 from.y, speed.y, to.y / from.y - from.y)
+
 ## "Flashes" a property to a value and back.
 func flash(
 	property : NodePath,
@@ -123,11 +164,13 @@ func flash(
 	tween.tween_property(node, property, value, duration).set_ease(Tween.EASE_IN).set_trans(trans)
 	tween.tween_property(node, property, old_val, duration).set_ease(Tween.EASE_OUT).set_trans(trans)
 
+## Flashes to a color, then goes back to the previous modulate value.
 func flash_color(
 	color : Color,
 	node : CanvasItem = def_node,
 	duration : float = 0.3,
-	trans : Tween.TransitionType = def_trans
+	trans : Tween.TransitionType = def_trans,
+	use_self_modulate : bool = false,
 ) -> void:
-	flash("modulate", color, node, duration, trans)
+	flash("modulate" if not use_self_modulate else "self_modulate", color, node, duration, trans)
 #endregion
