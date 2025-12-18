@@ -222,26 +222,21 @@ func go_to(
 	var rotation : float =\
 	 rad_to_deg(old_pos.angle_to_point(position)) if rotate else old_rotation
 	print(rotation)
-	if not animate_rotation:
-		tween.tween_callback(node.set.bind("rotation_degrees", rotation))
-	else:
-		tween\
-		.parallel()\
-		.tween_property(node, "rotation_degrees", rotation, duration / 3)\
-		.set_trans(trans)\
-		.set_ease(ease_type)
+	tween\
+	.parallel()\
+	.tween_property(node, "rotation_degrees", rotation, duration / 3.0 if animate_rotation else 0.0)\
+	.set_trans(trans)\
+	.set_ease(ease_type)
 	tween\
 	.tween_property(node, "position" if not use_global_pos else "global_position", position, duration)\
 	.set_trans(trans)\
 	.set_ease(ease_type)
-	if not animate_rotation:
-		tween.tween_callback(node.set.bind("rotation_degrees", old_rotation))
-		tween.tween_callback(animation_finished.emit.bind(AnimationType.GO_TO))
-	else:
-		tween\
-		.tween_property(node, "rotation_degrees", old_rotation, duration / 3)\
-		.set_trans(trans)\
-		.set_ease(ease_type)
-		tween.tween_callback(animation_finished.emit.bind(AnimationType.GO_TO))
+	tween\
+	.tween_property(node, "rotation_degrees", old_rotation, duration / 3.0 if animate_rotation else 0.0)\
+	.set_trans(trans)\
+	.set_ease(ease_type)
+	tween\
+	.parallel()\
+	.tween_callback(animation_finished.emit.bind(AnimationType.GO_TO))
 	
 #endregion
