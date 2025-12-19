@@ -13,5 +13,5 @@ To see the documentation press F1 in Godot with the script in the project files,
 ## To-do:
 - [x] Add basic animation chaining
 - [ ] Add better, more advanced chaining and playing animation in parallel
-- [ ] Allow chaining built-in tween methods in combination with the custom library animation for more customizability
+- [ ] Allow chaining built-in tween methods in combination with the custom library animations for more customizability
 - [ ] Add support for 3D eventually
